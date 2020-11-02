@@ -48,18 +48,6 @@ movingLeft = False
 movingRight = False
 maxSpeed = 500
 
-def createBasket():
-    basketYPos = 20
-    basketWidth = 100
-    basketThickness = 10
-    basketBody = pymunk.Body(1, pymunk.inf)
-    basketBody.position = width // 2, basketYPos
-    basketShape = pymunk.shapes.Segment(basketBody, (-basketWidth//2, 0), (basketWidth//2, 0), basketThickness)
-    basketShape.collision_type = collisionTypes["basket"]
-    basketConstraint = pymunk.GrooveJoint(space.static_body, basketBody, (basketWidth // 1.5, basketYPos), (width - basketWidth//1.5, basketYPos), (0,0))
-    space.add(basketBody, basketShape, basketConstraint)
-    return basketBody
-
 eggs = []
 def generateEgg():
     def randomEggType():
@@ -75,6 +63,17 @@ def generateEgg():
     eggs.append(eggShape)
     space.add(eggBody, eggShape)
 
+def createBasket():
+    basketYPos = 20
+    basketWidth = 100
+    basketThickness = 10
+    basketBody = pymunk.Body(1, pymunk.inf)
+    basketBody.position = width // 2, basketYPos
+    basketShape = pymunk.shapes.Segment(basketBody, (-basketWidth//2, 0), (basketWidth//2, 0), basketThickness)
+    basketShape.collision_type = collisionTypes["basket"]
+    basketConstraint = pymunk.GrooveJoint(space.static_body, basketBody, (basketWidth // 1.5, basketYPos), (width - basketWidth//1.5, basketYPos), (0,0))
+    space.add(basketBody, basketShape, basketConstraint)
+    return basketBody
 
 def updateVelocity():
     global basketBody
@@ -129,16 +128,14 @@ livesLabel = pyglet.text.Label('Lives',
 options = pymunk.pyglet_util.DrawOptions()
 @window.event
 def on_draw():
-    
     window.clear()
     pointsLabel.text = f'Points: {points}'
     livesLabel.text = f'Lives: {lives}'
     pointsLabel.draw()
     livesLabel.draw()
     space.debug_draw(options)
+    
 pyglet.clock.schedule_interval(update, 1/60)
-
-
 
 basketBody = createBasket()
 pyglet.app.run()
