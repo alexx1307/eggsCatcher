@@ -28,13 +28,11 @@ def catchHealerEgg(arbiter, space, data):
     removeEgg(arbiter.shapes[0])
     return False
 
-
 def catchBombEgg(arbiter, space, data):
     global lives
     lives -= 1
     removeEgg(arbiter.shapes[0])
     return False
-
 
 def catchRegularEgg(arbiter, space, data):
     global points
@@ -47,14 +45,12 @@ def catchGoldenEgg(arbiter, space, data):
     global points
     points += 5
     removeEgg(arbiter.shapes[0])
-
+    return False
 
 def catchMistyEgg(arbiter, space, data):
-    global points
     fogs.append([10, random.randint(0, width-pic.width),
                  random.randint(0, height-pic.height)])
     removeEgg(arbiter.shapes[0])
-
     return False
 
 
