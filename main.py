@@ -9,8 +9,8 @@ lives = 3
 width = 800
 height = 600
 window = pyglet.window.Window(width, height)
-space = pymunk.Space()
 
+space = pymunk.Space()
 
 def removeEgg(eggShape):
     eggs.remove(eggShape)
@@ -38,6 +38,8 @@ eggTypes = [
     ("regularEgg", (50, 255, 50, 255), 70),
     ("healerEgg", (50, 50, 255, 255), 5)
 ]
+
+
 eggInBasketHandler = space.add_collision_handler(collisionTypes["regularEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchRegularEgg
 
@@ -53,7 +55,7 @@ def generateEgg():
     def randomEggType():
         return random.choices(eggTypes, weights=[type[2] for type in eggTypes], k = 1)[0]  
     radius = 20
-    eggBody = pymunk.Body(1, 1)
+    eggBody = pymunk.Body(1, pymunk.inf)
     eggBody.position = random.randint(radius, width-radius), height + radius
     eggBody.velocity = 0, -random.randint(100,300)
     eggType, eggColor, _ = randomEggType()
@@ -114,7 +116,6 @@ def update(dt):
     space.step(dt)
 
 
-
 pointsLabel = pyglet.text.Label('Points',
                           font_name='Times New Roman',
                           font_size=36,
@@ -125,6 +126,7 @@ livesLabel = pyglet.text.Label('Lives',
                           font_size=36,
                           x=width - 120, y=height - 90,
                           anchor_x='center', anchor_y='center')
+
 options = pymunk.pyglet_util.DrawOptions()
 @window.event
 def on_draw():
@@ -134,7 +136,7 @@ def on_draw():
     pointsLabel.draw()
     livesLabel.draw()
     space.debug_draw(options)
-    
+
 pyglet.clock.schedule_interval(update, 1/60)
 
 basketBody = createBasket()
