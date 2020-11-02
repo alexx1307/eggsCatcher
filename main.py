@@ -28,21 +28,32 @@ def catchRegularEgg(arbiter, space, data):
     removeEgg(arbiter.shapes[0])
     return False
 
+def catchGoldenEgg(arbiter, space, data):
+    global points
+    points += 5
+    removeEgg(arbiter.shapes[0])
+    return False
+
 collisionTypes = {
     "basket": 0,
     "regularEgg": 1,
-    "healerEgg": 2
+    "healerEgg": 2,
+    "goldenEgg": 3
 }
 
 eggTypes = [
     ("regularEgg", (50, 255, 50, 255), 70),
-    ("healerEgg", (50, 50, 255, 255), 5)
+    ("healerEgg", (50, 50, 255, 255), 5),
+    ("goldenEgg", (255, 215, 0, 255), 5)
 ]
 eggInBasketHandler = space.add_collision_handler(collisionTypes["regularEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchRegularEgg
 
 eggInBasketHandler = space.add_collision_handler(collisionTypes["healerEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchHealerEgg
+
+eggInBasketHandler = space.add_collision_handler(collisionTypes["goldenEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchGoldenEgg
 
 movingLeft = False
 movingRight = False
@@ -55,8 +66,11 @@ def generateEgg():
     radius = 20
     eggBody = pymunk.Body(1, 1)
     eggBody.position = random.randint(radius, width-radius), height + radius
-    eggBody.velocity = 0, -random.randint(100,300)
     eggType, eggColor, _ = randomEggType()
+    if eggType == "goldenEgg":
+        eggBody.velocity = 0, -random.randint(400,600)
+    else:
+        eggBody.velocity = 0, -random.randint(100,300)
     eggShape = pymunk.Circle(eggBody, radius)
     eggShape.color = eggColor
     eggShape.collision_type = collisionTypes[eggType]
