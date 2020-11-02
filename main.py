@@ -3,8 +3,12 @@ from pyglet.window import key
 import pymunk
 import pymunk.pyglet_util
 import random
+from pyglet import image
 
+pic = image.load('cloud.png')
 points = 0
+fogs = []
+fog = False
 lives = 3
 width = 800
 height = 600
@@ -31,16 +35,24 @@ def catchRegularEgg(arbiter, space, data):
     removeEgg(arbiter.shapes[0])
     return False
 
+def catchMistyEgg(arbiter, space, data):
+    global points
+    fogs.append([10, random.randint(0, width-pic.width), random.randint(0, height-pic.height)])
+    removeEgg(arbiter.shapes[0])
+
+    return False
 
 collisionTypes = {
     "basket": 0,
     "regularEgg": 1,
-    "healerEgg": 2
+    "healerEgg": 2,
+    "mistyEgg": 3
 }
 
 eggTypes = [
     ("regularEgg", (50, 255, 50, 255), 70),
-    ("healerEgg", (50, 50, 255, 255), 5)
+    ("healerEgg", (50, 50, 255, 255), 5),
+    ("mistyEgg", (155, 150, 250, 100), 150)
 ]
 
 
@@ -51,6 +63,10 @@ eggInBasketHandler.begin = catchRegularEgg
 eggInBasketHandler = space.add_collision_handler(
     collisionTypes["healerEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchHealerEgg
+
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["mistyEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchMistyEgg
 
 movingLeft = False
 movingRight = False
@@ -88,6 +104,11 @@ def createBasket():
     space.add(basketBody, basketShape, basketConstraint)
     return basketBody
 
+def updateFogs(dt):
+    for x in fogs:
+        x[0] -= dt
+        if x[0] < 0:
+            fogs.remove(x)
 
 def updateVelocity():
     global basketBody
@@ -138,6 +159,7 @@ def update(dt):
         timeToGenerateEgg = random.uniform(level-0.5, level+0.5)
         generateEgg()
     removeFallenEggs()
+    updateFogs(dt)
     space.step(dt)
 
 
@@ -163,6 +185,9 @@ def on_draw():
     pointsLabel.draw()
     livesLabel.draw()
     space.debug_draw(options)
+    for _, x, y in fogs:
+        pic.blit(x, y, 0)
+
 
 
 pyglet.clock.schedule_interval(update, 1/60)
