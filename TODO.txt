@@ -1,0 +1,21 @@
+TODO list
+
+tracenie żyć
+zwiększanie poziomu trudności
+widok końca gry
+
+bomb egg - złapanie go => utrata życia
+golden egg - dużo szybsze ale dające więcej punktów
+slower egg - efekt czasowy spowalniający platformę (efekt negatywny) albo spowalniające lot jajek i ich generowanie (efekt pozytywny)
+faster egg - analogicznie jw
+shooter egg i strzelanie do jajek? - efekt czasowy dający platofrmie strzelbę - nie wiem czy zestrzelone jajko ma dawać efekt jak po złapaniu?
+shield egg? - brak straty życia za niezłapanie jajka tudzież brak kary za złapanie bomby
+misty egg - wprowadza mgłę, przez którą słąbiej (wcale) nie widać jajek na jakimś obszarze
+
+levele czyli po każdych np 30 jajkach boss (strzelająe wielkie jajo - trzeba uciekać albo zestrzelić) i po jego pokonaniu lvl up czyli zwiększenie szybkości itd
+
+i wiele wiele innych
+
+Nastepnym razem:
+przerobienie na klasy i rozdzielenie do osobnych plików
+przeniesienie na grafikę z pygleta (tło, jajka, koszyk)
