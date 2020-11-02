@@ -68,8 +68,8 @@ def generateEgg():
     eggBody = pymunk.Body(1, 1)
     eggBody.position = random.randint(radius, width-radius), height + radius
     eggBody.velocity = 0, -random.randint(100,300)
-    eggShape = pymunk.Circle(eggBody, radius)
     eggType, eggColor, _ = randomEggType()
+    eggShape = pymunk.Circle(eggBody, radius)
     eggShape.color = eggColor
     eggShape.collision_type = collisionTypes[eggType]
     eggs.append(eggShape)
