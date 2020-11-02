@@ -29,37 +29,50 @@ def catchHealerEgg(arbiter, space, data):
     return False
 
 
+def catchBombEgg(arbiter, space, data):
+    global lives
+    lives -= 1
+    removeEgg(arbiter.shapes[0])
+    return False
+
+
 def catchRegularEgg(arbiter, space, data):
     global points
     points += 1
     removeEgg(arbiter.shapes[0])
     return False
 
+
 def catchGoldenEgg(arbiter, space, data):
     global points
     points += 5
     removeEgg(arbiter.shapes[0])
-    
+
+
 def catchMistyEgg(arbiter, space, data):
     global points
-    fogs.append([10, random.randint(0, width-pic.width), random.randint(0, height-pic.height)])
+    fogs.append([10, random.randint(0, width-pic.width),
+                 random.randint(0, height-pic.height)])
     removeEgg(arbiter.shapes[0])
 
     return False
+
 
 collisionTypes = {
     "basket": 0,
     "regularEgg": 1,
     "healerEgg": 2,
     "goldenEgg": 3,
-    "mistyEgg": 4
+    "mistyEgg": 4,
+    "bombEgg": 5
 }
 
 eggTypes = [
     ("regularEgg", (50, 255, 50, 255), 70),
     ("healerEgg", (50, 50, 255, 255), 5),
     ("goldenEgg", (255, 215, 0, 255), 20),
-    ("mistyEgg", (155, 150, 250, 100), 10)
+    ("mistyEgg", (155, 150, 250, 100), 10),
+    ("bombEgg", (50, 50, 100, 255), 5)
 ]
 
 
@@ -71,12 +84,17 @@ eggInBasketHandler = space.add_collision_handler(
     collisionTypes["healerEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchHealerEgg
 
-eggInBasketHandler = space.add_collision_handler(collisionTypes["goldenEgg"], collisionTypes["basket"])
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["goldenEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchGoldenEgg
 
 eggInBasketHandler = space.add_collision_handler(
     collisionTypes["mistyEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchMistyEgg
+
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["bombEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchBombEgg
 
 movingLeft = False
 movingRight = False
@@ -93,9 +111,9 @@ def generateEgg():
     eggBody.position = random.randint(radius, width-radius), height + radius
     eggType, eggColor, _ = randomEggType()
     if eggType == "goldenEgg":
-        eggBody.velocity = 0, -random.randint(400,600)
+        eggBody.velocity = 0, -random.randint(400, 600)
     else:
-        eggBody.velocity = 0, -random.randint(100,300)
+        eggBody.velocity = 0, -random.randint(100, 300)
     eggShape = pymunk.Circle(eggBody, radius)
     eggShape.color = eggColor
     eggShape.collision_type = collisionTypes[eggType]
@@ -117,11 +135,13 @@ def createBasket():
     space.add(basketBody, basketShape, basketConstraint)
     return basketBody
 
+
 def updateFogs(dt):
     for x in fogs:
         x[0] -= dt
         if x[0] < 0:
             fogs.remove(x)
+
 
 def updateVelocity():
     global basketBody
@@ -136,8 +156,9 @@ def updateVelocity():
 def removeFallenEggs():
     for eggShape in eggs:
         if eggShape.body.position[1] < eggShape.radius:
-            global lives
-            lives -= 1
+            if eggShape.collision_type != collisionTypes["bombEgg"]:
+                global lives
+                lives -= 1
             removeEgg(eggShape)
 
 
@@ -200,7 +221,6 @@ def on_draw():
     space.debug_draw(options)
     for _, x, y in fogs:
         pic.blit(x, y, 0)
-
 
 
 pyglet.clock.schedule_interval(update, 1/60)
