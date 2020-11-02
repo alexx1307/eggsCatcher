@@ -1,7 +1,7 @@
 TODO list
 
 tracenie żyć
-zwiększanie poziomu trudności
+zwiększanie poziomu trudności (pyrzspieszanie jajek, częstsze generowanie jajek?)
 widok końca gry
 
 bomb egg - złapanie go => utrata życia
