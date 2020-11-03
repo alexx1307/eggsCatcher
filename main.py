@@ -194,10 +194,11 @@ def update(dt):
         if timeToGenerateEgg < 0:
             timeToGenerateEgg = random.uniform(level-0.5, level+0.5)
             generateEgg()
-    removeFallenEggs()
-    updateFogs(dt)
+        removeFallenEggs()
+        updateFogs(dt)
     if lives == 0:
         game = False
+        [removeEgg(eggShape) for eggShape in eggs]
     space.step(dt)
 
 def gameover():
