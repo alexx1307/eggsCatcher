@@ -5,7 +5,7 @@ import pymunk.pyglet_util
 import random
 from pyglet import image
 
-pic = image.load('eggsCatcher/cloud.png')
+pic = image.load('cloud.png')
 points = 0
 fogs = []
 fog = False
@@ -167,6 +167,8 @@ def on_key_press(symbol, modifiers):
         movingLeft = True
     if symbol == key.RIGHT:
         movingRight = True
+    if symbol == key.SPACE and not game:
+        gameover()
     updateVelocity()
 
 
@@ -196,16 +198,26 @@ def update(dt):
     updateFogs(dt)
     if lives == 0:
         game = False
-        gameover()
     space.step(dt)
 
 def gameover():
-    pass
+    global lives
+    global points
+    global game
+    lives = 3
+    points = 0
+    game = True
 
 gameoverLabel = pyglet.text.Label('Game Over',
                                 font_name='Times New Roman',
                                 font_size=40,
                                 x=width//2, y=height//2,
+                                anchor_x='center', anchor_y='center')
+
+pressspaceLabel = pyglet.text.Label('Press SPACE to play again',
+                                font_name='Times New Roman',
+                                font_size=20,
+                                x=width//2, y=height//2 -50,
                                 anchor_x='center', anchor_y='center')
 
 pointsLabel = pyglet.text.Label('Points',
@@ -234,6 +246,7 @@ def on_draw():
         pic.blit(x, y, 0)
     if not game:
         gameoverLabel.draw()
+        pressspaceLabel.draw()
 
 
 pyglet.clock.schedule_interval(update, 1/60)
