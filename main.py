@@ -5,7 +5,7 @@ import pymunk.pyglet_util
 import random
 from pyglet import image
 
-pic = image.load('cloud.png')
+pic = image.load('eggsCatcher/cloud.png')
 points = 0
 fogs = []
 fog = False
@@ -13,6 +13,7 @@ lives = 3
 width = 800
 height = 600
 window = pyglet.window.Window(width, height)
+game = True
 
 space = pymunk.Space()
 
@@ -150,9 +151,10 @@ def updateVelocity():
 
 
 def removeFallenEggs():
+    global game
     for eggShape in eggs:
         if eggShape.body.position[1] < eggShape.radius:
-            if eggShape.collision_type != collisionTypes["bombEgg"]:
+            if eggShape.collision_type != collisionTypes["bombEgg"] and game:
                 global lives
                 lives -= 1
             removeEgg(eggShape)
@@ -183,15 +185,28 @@ level = 3
 
 
 def update(dt):
-    global timeToGenerateEgg
-    timeToGenerateEgg -= dt
-    if timeToGenerateEgg < 0:
-        timeToGenerateEgg = random.uniform(level-0.5, level+0.5)
-        generateEgg()
+    global game
+    if game:
+        global timeToGenerateEgg
+        timeToGenerateEgg -= dt
+        if timeToGenerateEgg < 0:
+            timeToGenerateEgg = random.uniform(level-0.5, level+0.5)
+            generateEgg()
     removeFallenEggs()
     updateFogs(dt)
+    if lives == 0:
+        game = False
+        gameover()
     space.step(dt)
 
+def gameover():
+    pass
+
+gameoverLabel = pyglet.text.Label('Game Over',
+                                font_name='Times New Roman',
+                                font_size=40,
+                                x=width//2, y=height//2,
+                                anchor_x='center', anchor_y='center')
 
 pointsLabel = pyglet.text.Label('Points',
                                 font_name='Times New Roman',
@@ -217,6 +232,8 @@ def on_draw():
     space.debug_draw(options)
     for _, x, y in fogs:
         pic.blit(x, y, 0)
+    if not game:
+        gameoverLabel.draw()
 
 
 pyglet.clock.schedule_interval(update, 1/60)
