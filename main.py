@@ -9,7 +9,7 @@ pic = image.load('cloud.png')
 points = 0
 fogs = []
 fog = False
-lives = 3
+lives = 1
 width = 800
 height = 600
 window = pyglet.window.Window(width, height)
@@ -50,7 +50,7 @@ def catchGoldenEgg(arbiter, space, data):
 
 def catchMistyEgg(arbiter, space, data):
     fogs.append([10, random.randint(0, width-pic.width),
-                 random.randint(0, height-pic.height)])
+                random.randint(0, height-pic.height)])
     removeEgg(arbiter.shapes[0])
     return False
 
@@ -168,7 +168,7 @@ def on_key_press(symbol, modifiers):
     if symbol == key.RIGHT:
         movingRight = True
     if symbol == key.SPACE and not game:
-        gameover()
+        reset()
     updateVelocity()
 
 
@@ -199,12 +199,26 @@ def update(dt):
     if lives == 0:
         game = False
         [removeEgg(eggShape) for eggShape in eggs]
+        [fog.remove() for fog in fogs]
+        highscore()
     space.step(dt)
 
-def gameover():
-    global lives
-    global points
-    global game
+def highscore():
+    global highscorelist
+    highscorelist = []
+    f = open('highscore.txt')
+    mylist = list(map(int, f.read().split()))
+    poslist = [350, 300, 250, 200, 150]
+    for i in range(0, 5):
+        scoreLabel = pyglet.text.Label(f'{i+1}. {mylist[i]}',
+                                font_name='Times New Roman',
+                                font_size=20,
+                                x=width//2, y=poslist[i],
+                                anchor_x='center', anchor_y='center')
+        highscorelist.append(scoreLabel)
+
+def reset():
+    global lives, points, game
     lives = 3
     points = 0
     game = True
@@ -212,13 +226,19 @@ def gameover():
 gameoverLabel = pyglet.text.Label('Game Over',
                                 font_name='Times New Roman',
                                 font_size=40,
-                                x=width//2, y=height//2,
+                                x=width//2, y=550,
                                 anchor_x='center', anchor_y='center')
 
 pressspaceLabel = pyglet.text.Label('Press SPACE to play again',
                                 font_name='Times New Roman',
                                 font_size=20,
-                                x=width//2, y=height//2 -50,
+                                x=width//2, y=500,
+                                anchor_x='center', anchor_y='center')
+
+highscorelabel = pyglet.text.Label('Highscores',
+                                font_name='Times New Roman',
+                                font_size=20,
+                                x=width//2, y=400,
                                 anchor_x='center', anchor_y='center')
 
 pointsLabel = pyglet.text.Label('Points',
@@ -227,10 +247,10 @@ pointsLabel = pyglet.text.Label('Points',
                                 x=width - 120, y=height - 50,
                                 anchor_x='center', anchor_y='center')
 livesLabel = pyglet.text.Label('Lives',
-                               font_name='Times New Roman',
-                               font_size=36,
-                               x=width - 120, y=height - 90,
-                               anchor_x='center', anchor_y='center')
+                                font_name='Times New Roman',
+                                font_size=36,
+                                x=width - 120, y=height - 90,
+                                anchor_x='center', anchor_y='center')
 
 options = pymunk.pyglet_util.DrawOptions()
 
@@ -240,14 +260,19 @@ def on_draw():
     window.clear()
     pointsLabel.text = f'Points: {points}'
     livesLabel.text = f'Lives: {lives}'
-    pointsLabel.draw()
-    livesLabel.draw()
+    if game:
+        pointsLabel.draw()
+        livesLabel.draw()
     space.debug_draw(options)
     for _, x, y in fogs:
         pic.blit(x, y, 0)
     if not game:
         gameoverLabel.draw()
         pressspaceLabel.draw()
+        highscorelabel.draw()
+        global highscorelist
+        for a in highscorelist:
+            a.draw()
 
 
 pyglet.clock.schedule_interval(update, 1/60)
