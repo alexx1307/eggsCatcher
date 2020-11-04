@@ -6,10 +6,10 @@ import random
 from pyglet import image
 
 pic = image.load('cloud.png')
-points = 10
+points = 0
 fogs = []
 fog = False
-lives = 1
+lives = 3
 width = 800
 height = 600
 window = pyglet.window.Window(width, height)
