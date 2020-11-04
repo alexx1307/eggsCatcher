@@ -14,6 +14,7 @@ width = 800
 height = 600
 window = pyglet.window.Window(width, height)
 game = True
+first_loop = True
 
 space = pymunk.Space()
 
@@ -187,7 +188,7 @@ level = 3
 
 
 def update(dt):
-    global game
+    global game, first_loop
     if game:
         global timeToGenerateEgg
         timeToGenerateEgg -= dt
@@ -200,7 +201,9 @@ def update(dt):
         game = False
         [removeEgg(eggShape) for eggShape in eggs]
         [fog.remove() for fog in fogs]
-        highscore()
+        if first_loop:
+            highscore()
+        first_loop = False
     space.step(dt)
 
 def highscore():
@@ -220,12 +223,15 @@ def highscore():
                                 x=width//2, y=poslist[i],
                                 anchor_x='center', anchor_y='center')
         highscorelist.append(scoreLabel)
+    f = open('highscore.txt', 'w')
+    f.write(' '.join(list(map(str, mylist))))
 
 def reset():
-    global lives, points, game
+    global lives, points, game, first_loop
     lives = 3
     points = 0
     game = True
+    first_loop = True
 
 gameoverLabel = pyglet.text.Label('Game Over',
                                 font_name='Times New Roman',
