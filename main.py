@@ -6,7 +6,7 @@ import random
 from pyglet import image
 
 pic = image.load('cloud.png')
-points = 0
+points = 10
 fogs = []
 fog = False
 lives = 1
@@ -204,10 +204,14 @@ def update(dt):
     space.step(dt)
 
 def highscore():
-    global highscorelist
+    global highscorelist, points
     highscorelist = []
     f = open('highscore.txt')
     mylist = list(map(int, f.read().split()))
+    if points > mylist[4]:
+        mylist.append(points)
+        mylist.sort(reverse=True)
+        mylist.pop(5)
     poslist = [350, 300, 250, 200, 150]
     for i in range(0, 5):
         scoreLabel = pyglet.text.Label(f'{i+1}. {mylist[i]}',
