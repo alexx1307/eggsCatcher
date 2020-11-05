@@ -237,8 +237,9 @@ def highscore():
     f.write(' '.join(list(map(str, mylist))))
 
 def reset():
-    global lives, points, game, first_loop
+    global lives, points, game, first_loop, level
     lives = 3
+    level = 1
     points = 0
     game = True
     first_loop = True
