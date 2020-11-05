@@ -18,6 +18,14 @@ first_loop = True
 
 space = pymunk.Space()
 
+pointsToNextLevel = [10,20,40,80,160,320]
+def addPoints(pointsToAdd):
+    global level, points
+    points += pointsToAdd
+    if level < len(pointsToNextLevel):
+        if points > pointsToNextLevel[level - 1]:
+            level += 1
+    
 
 def removeEgg(eggShape):
     eggs.remove(eggShape)
@@ -38,14 +46,14 @@ def catchBombEgg(arbiter, space, data):
 
 def catchRegularEgg(arbiter, space, data):
     global points
-    points += 1
+    addPoints(1)
     removeEgg(arbiter.shapes[0])
     return False
 
 
 def catchGoldenEgg(arbiter, space, data):
     global points
-    points += 5
+    addPoints(5)
     removeEgg(arbiter.shapes[0])
     return False
 
@@ -150,12 +158,12 @@ def updateVelocity():
         vel += maxSpeed
     basketBody.velocity = vel, 0
 
-
+collisionTypesToAvoid = [collisionTypes["bombEgg"], collisionTypes["goldenEgg"]]
 def removeFallenEggs():
     global game
     for eggShape in eggs:
         if eggShape.body.position[1] < eggShape.radius:
-            if eggShape.collision_type != collisionTypes["bombEgg"] and game:
+            if eggShape.collision_type not in collisionTypesToAvoid and game:
                 global lives
                 lives -= 1
             removeEgg(eggShape)
@@ -184,7 +192,9 @@ def on_key_release(symbol, modifiers):
 
 
 timeToGenerateEgg = 2
-level = 3
+level = 1
+def timeToNextEgg(level):
+    return 3/level + random.uniform(0, 1.0)
 
 
 def update(dt):
@@ -193,7 +203,7 @@ def update(dt):
         global timeToGenerateEgg
         timeToGenerateEgg -= dt
         if timeToGenerateEgg < 0:
-            timeToGenerateEgg = random.uniform(level-0.5, level+0.5)
+            timeToGenerateEgg = timeToNextEgg(level)
             generateEgg()
         removeFallenEggs()
         updateFogs(dt)
@@ -261,6 +271,11 @@ livesLabel = pyglet.text.Label('Lives',
                                 font_size=36,
                                 x=width - 120, y=height - 90,
                                 anchor_x='center', anchor_y='center')
+levelLabel = pyglet.text.Label('Level',
+                                font_name='Times New Roman',
+                                font_size=36,
+                                x=width - 120, y=height - 130,
+                                anchor_x='center', anchor_y='center')
 
 options = pymunk.pyglet_util.DrawOptions()
 
@@ -270,9 +285,11 @@ def on_draw():
     window.clear()
     pointsLabel.text = f'Points: {points}'
     livesLabel.text = f'Lives: {lives}'
+    levelLabel.text = f'Level: {level}'
     if game:
         pointsLabel.draw()
         livesLabel.draw()
+        levelLabel.draw()
     space.debug_draw(options)
     for _, x, y in fogs:
         pic.blit(x, y, 0)
