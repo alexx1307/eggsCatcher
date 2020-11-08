@@ -15,6 +15,7 @@ height = 600
 window = pyglet.window.Window(width, height)
 game = True
 first_loop = True
+shield = False
 
 space = pymunk.Space()
 
@@ -57,6 +58,14 @@ def catchGoldenEgg(arbiter, space, data):
     removeEgg(arbiter.shapes[0])
     return False
 
+def catchShieldEgg(arbiter, space, data):
+    global points
+    addPoints(1)
+    global shield 
+    shield = True
+    removeEgg(arbiter.shapes[0])
+    return False
+
 def catchMistyEgg(arbiter, space, data):
     fogs.append([10, random.randint(0, width-pic.width),
                 random.randint(0, height-pic.height)])
@@ -70,7 +79,8 @@ collisionTypes = {
     "healerEgg": 2,
     "goldenEgg": 3,
     "mistyEgg": 4,
-    "bombEgg": 5
+    "bombEgg": 5,
+    "shieldEgg": 5
 }
 
 eggTypes = [
@@ -78,7 +88,8 @@ eggTypes = [
     ("healerEgg", (50, 50, 255, 255), 5),
     ("goldenEgg", (255, 215, 0, 255), 20),
     ("mistyEgg", (155, 150, 250, 100), 10),
-    ("bombEgg", (50, 50, 100, 255), 5)
+    ("bombEgg", (50, 50, 100, 255), 5),
+    ("shieldEgg", (255, 255, 50, 0), 200)
 ]
 
 
@@ -101,6 +112,10 @@ eggInBasketHandler.begin = catchMistyEgg
 eggInBasketHandler = space.add_collision_handler(
     collisionTypes["bombEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchBombEgg
+
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["shieldEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchShieldEgg
 
 movingLeft = False
 movingRight = False
@@ -164,8 +179,12 @@ def removeFallenEggs():
     for eggShape in eggs:
         if eggShape.body.position[1] < eggShape.radius:
             if eggShape.collision_type not in collisionTypesToAvoid and game:
-                global lives
-                lives -= 1
+                global shield
+                if shield != True:
+                    global lives
+                    lives -= 1
+                else:
+                    shield = False
             removeEgg(eggShape)
 
 
