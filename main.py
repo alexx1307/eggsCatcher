@@ -80,7 +80,7 @@ collisionTypes = {
     "goldenEgg": 3,
     "mistyEgg": 4,
     "bombEgg": 5,
-    "shieldEgg": 5
+    "shieldEgg": 6
 }
 
 eggTypes = [
