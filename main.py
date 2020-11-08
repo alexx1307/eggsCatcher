@@ -16,6 +16,7 @@ window = pyglet.window.Window(width, height)
 game = True
 first_loop = True
 shield = False
+time_speedboost = 0
 
 space = pymunk.Space()
 
@@ -72,6 +73,16 @@ def catchMistyEgg(arbiter, space, data):
     removeEgg(arbiter.shapes[0])
     return False
 
+def catchSpeedEgg(arbiter, space, data):
+    global points
+    global maxSpeed
+    global time_speedboost
+    addPoints(1)
+    maxSpeed = 1000
+    time_speedboost = 10
+    removeEgg(arbiter.shapes[0])
+    return False
+
 
 collisionTypes = {
     "basket": 0,
@@ -80,7 +91,8 @@ collisionTypes = {
     "goldenEgg": 3,
     "mistyEgg": 4,
     "bombEgg": 5,
-    "shieldEgg": 6
+    "shieldEgg": 6,
+    "speedEgg": 7
 }
 
 eggTypes = [
@@ -89,7 +101,8 @@ eggTypes = [
     ("goldenEgg", (255, 215, 0, 255), 20),
     ("mistyEgg", (155, 150, 250, 100), 10),
     ("bombEgg", (50, 50, 100, 255), 5),
-    ("shieldEgg", (255, 255, 50, 0), 200)
+    ("shieldEgg", (255, 255, 50, 0), 10),
+    ("speedEgg", (255, 51, 236, 0), 10)
 ]
 
 
@@ -116,6 +129,10 @@ eggInBasketHandler.begin = catchBombEgg
 eggInBasketHandler = space.add_collision_handler(
     collisionTypes["shieldEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchShieldEgg
+
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["speedEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchSpeedEgg
 
 movingLeft = False
 movingRight = False
@@ -173,6 +190,13 @@ def updateVelocity():
         vel += maxSpeed
     basketBody.velocity = vel, 0
 
+def updateSpeedEgg(dt):
+    global maxSpeed, time_speedboost
+    if time_speedboost > 0:
+        time_speedboost -= dt
+        if time_speedboost < 0:
+            maxSpeed = 500
+
 collisionTypesToAvoid = [collisionTypes["bombEgg"], collisionTypes["goldenEgg"]]
 def removeFallenEggs():
     global game
@@ -226,6 +250,7 @@ def update(dt):
             generateEgg()
         removeFallenEggs()
         updateFogs(dt)
+        updateSpeedEgg(dt)
     if lives == 0:
         game = False
         [removeEgg(eggShape) for eggShape in eggs]
