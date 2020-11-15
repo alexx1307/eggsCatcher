@@ -1,10 +1,11 @@
 import pyglet
 
 class GUI:
-    def __init__(self, width, height):
+    def __init__(self, gameManager, width, height):
         self.highScoresNumber = 5
         self.scoreLabels = []
         self.game = True
+        self.gameManager = gameManager
         self.pointsLabel = pyglet.text.Label('Points',
                                 font_name='Times New Roman',
                                 font_size=36,
@@ -47,11 +48,11 @@ class GUI:
                                     anchor_x='center', anchor_y='center')
             self.scoreLabels.append(scoreLabel)
     
-    def update(self, state):
-        self.pointsLabel.text = f'Points: {state.points}'
-        self.livesLabel.text = f'Lives: {state.lives}'
-        self.levelLabel.text = f'Level: {state.level}'
-        self.game = state.game
+    def update(self):
+        self.pointsLabel.text = f'Points: {self.gameManager.points}'
+        self.livesLabel.text = f'Lives: {self.gameManager.lives}'
+        self.levelLabel.text = f'Level: {self.gameManager.level}'
+        self.game = self.gameManager.game
         
     
     def updateHS(self, bestScores):
