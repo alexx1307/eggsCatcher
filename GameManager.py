@@ -8,6 +8,7 @@ import pymunk.pyglet_util
 import random
 from GUI import GUI
 from Basket import Basket
+import Fogs as fogs
 import Eggs
 import HighScoresManager
 
@@ -26,7 +27,6 @@ class GameManager(pyglet.window.Window):
         self.gui = GUI(self, width, height)
         self.space = pymunk.Space()
 
-        self.pic = image.load('./assets/cloud.png')
         self.initPhysics()
         
         self.eggs = []
@@ -102,14 +102,14 @@ class GameManager(pyglet.window.Window):
         self.space.add(egg, egg.body)
 
     def addFog(self):
-        self.fogs.append([10, random.randint(0, self.width-self.pic.width),
-                random.randint(0, self.height-self.pic.height)])
-    
+        self.fogs.append(fogs.Fog(10, random.randint(0, self.width-fogs.fogImg.width),
+                random.randint(0, self.height-fogs.fogImg.height)))
+
     def updateFogs(self, dt):
-        for x in list(self.fogs):
-            x[0] -= dt
-            if x[0] < 0:
-                self.fogs.remove(x)
+        for fog in list(self.fogs):
+            fog.timeLeft -= dt
+            if fog.timeLeft < 0:
+                self.fogs.remove(fog)
 
     def removeFallenEggs(self):
         for egg in self.eggs:
@@ -126,8 +126,8 @@ class GameManager(pyglet.window.Window):
         self.basket.draw()
         for egg in self.eggs:
             egg.draw()
-        for _, x, y in self.fogs:
-            self.pic.blit(x, y, 0)
+        for fog in self.fogs:
+            fog.draw()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:

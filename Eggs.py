@@ -6,6 +6,10 @@ redCircleImage = pyglet.image.load('./assets/redCircle.png')
 redCircleImage.anchor_x = redCircleImage.width //2
 redCircleImage.anchor_y = redCircleImage.height //2
 
+blueCircleImage = pyglet.image.load('./assets/blueCircle.png')
+blueCircleImage.anchor_x = blueCircleImage.width //2
+blueCircleImage.anchor_y = blueCircleImage.height //2
+
 class Egg(pymunk.Circle):
     radius = 20
     def __init__(self, gameManager, color, x, y):
@@ -24,7 +28,7 @@ class Egg(pymunk.Circle):
 
     def draw(self):
         self.sprite.x, self.sprite.y = self.body.position
-        self.sprite.draw()
+        #self.sprite.draw()
     
 class RegularEgg(Egg):
     def __init__(self, gameManager, x, y):
@@ -63,6 +67,7 @@ class GoldenEgg(Egg):
 class MistyEgg(Egg):
     def __init__(self, gameManager, x, y):
         super().__init__(gameManager, (155, 150, 250, 255), x, y)
+        self.sprite = pyglet.sprite.Sprite(blueCircleImage, *self.body.position)
 
     def whenCaught(self):
         self.gameManager.addFog()
