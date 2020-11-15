@@ -15,9 +15,19 @@ height = 600
 window = pyglet.window.Window(width, height)
 game = True
 first_loop = True
+shield = False
+time_speedboost = 0
 
 space = pymunk.Space()
 
+pointsToNextLevel = [10,20,40,80,160,320]
+def addPoints(pointsToAdd):
+    global level, points
+    points += pointsToAdd
+    if level < len(pointsToNextLevel):
+        if points > pointsToNextLevel[level - 1]:
+            level += 1
+    
 
 def removeEgg(eggShape):
     eggs.remove(eggShape)
@@ -38,20 +48,38 @@ def catchBombEgg(arbiter, space, data):
 
 def catchRegularEgg(arbiter, space, data):
     global points
-    points += 1
+    addPoints(1)
     removeEgg(arbiter.shapes[0])
     return False
 
 
 def catchGoldenEgg(arbiter, space, data):
     global points
-    points += 5
+    addPoints(5)
+    removeEgg(arbiter.shapes[0])
+    return False
+
+def catchShieldEgg(arbiter, space, data):
+    global points
+    addPoints(1)
+    global shield 
+    shield = True
     removeEgg(arbiter.shapes[0])
     return False
 
 def catchMistyEgg(arbiter, space, data):
     fogs.append([10, random.randint(0, width-pic.width),
                 random.randint(0, height-pic.height)])
+    removeEgg(arbiter.shapes[0])
+    return False
+
+def catchSpeedEgg(arbiter, space, data):
+    global points
+    global maxSpeed
+    global time_speedboost
+    addPoints(1)
+    maxSpeed = 1000
+    time_speedboost = 10
     removeEgg(arbiter.shapes[0])
     return False
 
@@ -62,7 +90,9 @@ collisionTypes = {
     "healerEgg": 2,
     "goldenEgg": 3,
     "mistyEgg": 4,
-    "bombEgg": 5
+    "bombEgg": 5,
+    "shieldEgg": 6,
+    "speedEgg": 7
 }
 
 eggTypes = [
@@ -70,7 +100,9 @@ eggTypes = [
     ("healerEgg", (50, 50, 255, 255), 5),
     ("goldenEgg", (255, 215, 0, 255), 20),
     ("mistyEgg", (155, 150, 250, 100), 10),
-    ("bombEgg", (50, 50, 100, 255), 5)
+    ("bombEgg", (50, 50, 100, 255), 5),
+    ("shieldEgg", (255, 255, 50, 0), 10),
+    ("speedEgg", (255, 51, 236, 0), 10)
 ]
 
 
@@ -93,6 +125,14 @@ eggInBasketHandler.begin = catchMistyEgg
 eggInBasketHandler = space.add_collision_handler(
     collisionTypes["bombEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchBombEgg
+
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["shieldEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchShieldEgg
+
+eggInBasketHandler = space.add_collision_handler(
+    collisionTypes["speedEgg"], collisionTypes["basket"])
+eggInBasketHandler.begin = catchSpeedEgg
 
 movingLeft = False
 movingRight = False
@@ -150,14 +190,25 @@ def updateVelocity():
         vel += maxSpeed
     basketBody.velocity = vel, 0
 
+def updateSpeedEgg(dt):
+    global maxSpeed, time_speedboost
+    if time_speedboost > 0:
+        time_speedboost -= dt
+        if time_speedboost < 0:
+            maxSpeed = 500
 
+collisionTypesToAvoid = [collisionTypes["bombEgg"], collisionTypes["goldenEgg"]]
 def removeFallenEggs():
     global game
     for eggShape in eggs:
         if eggShape.body.position[1] < eggShape.radius:
-            if eggShape.collision_type != collisionTypes["bombEgg"] and game:
-                global lives
-                lives -= 1
+            if eggShape.collision_type not in collisionTypesToAvoid and game:
+                global shield
+                if shield != True:
+                    global lives
+                    lives -= 1
+                else:
+                    shield = False
             removeEgg(eggShape)
 
 
@@ -184,7 +235,9 @@ def on_key_release(symbol, modifiers):
 
 
 timeToGenerateEgg = 2
-level = 3
+level = 1
+def timeToNextEgg(level):
+    return 3/level + random.uniform(0, 1.0)
 
 
 def update(dt):
@@ -193,10 +246,11 @@ def update(dt):
         global timeToGenerateEgg
         timeToGenerateEgg -= dt
         if timeToGenerateEgg < 0:
-            timeToGenerateEgg = random.uniform(level-0.5, level+0.5)
+            timeToGenerateEgg = timeToNextEgg(level)
             generateEgg()
         removeFallenEggs()
         updateFogs(dt)
+        updateSpeedEgg(dt)
     if lives == 0:
         game = False
         [removeEgg(eggShape) for eggShape in eggs]
@@ -227,8 +281,9 @@ def highscore():
     f.write(' '.join(list(map(str, mylist))))
 
 def reset():
-    global lives, points, game, first_loop
+    global lives, points, game, first_loop, level
     lives = 3
+    level = 1
     points = 0
     game = True
     first_loop = True
@@ -261,6 +316,11 @@ livesLabel = pyglet.text.Label('Lives',
                                 font_size=36,
                                 x=width - 120, y=height - 90,
                                 anchor_x='center', anchor_y='center')
+levelLabel = pyglet.text.Label('Level',
+                                font_name='Times New Roman',
+                                font_size=36,
+                                x=width - 120, y=height - 130,
+                                anchor_x='center', anchor_y='center')
 
 options = pymunk.pyglet_util.DrawOptions()
 
@@ -270,9 +330,11 @@ def on_draw():
     window.clear()
     pointsLabel.text = f'Points: {points}'
     livesLabel.text = f'Lives: {lives}'
+    levelLabel.text = f'Level: {level}'
     if game:
         pointsLabel.draw()
         livesLabel.draw()
+        levelLabel.draw()
     space.debug_draw(options)
     for _, x, y in fogs:
         pic.blit(x, y, 0)
