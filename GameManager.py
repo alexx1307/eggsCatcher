@@ -83,7 +83,7 @@ class GameManager(pyglet.window.Window):
     def gameOver(self):
         self.game = False
         for fog in list(self.fogs):
-            fogs.remove(fog)
+            self.fogs.remove(fog)
         for egg in list(self.eggs):
             self.removeEgg(egg)
         HighScoresManager.addScore(self.points)
@@ -123,6 +123,9 @@ class GameManager(pyglet.window.Window):
         self.clear()
         self.gui.draw()
         self.space.debug_draw(GameManager.drawOptions)
+        self.basket.draw()
+        for egg in self.eggs:
+            egg.draw()
         for _, x, y in self.fogs:
             self.pic.blit(x, y, 0)
 

@@ -1,5 +1,10 @@
 import pymunk
 import random 
+import pyglet
+
+redCircleImage = pyglet.image.load('./assets/redCircle.png')
+redCircleImage.anchor_x = redCircleImage.width //2
+redCircleImage.anchor_y = redCircleImage.height //2
 
 class Egg(pymunk.Circle):
     radius = 20
@@ -7,10 +12,9 @@ class Egg(pymunk.Circle):
         super().__init__(pymunk.Body(1, pymunk.inf), Egg.radius)
         self.body.position = x, y
         self.body.velocity = 0, -random.randint(100, 300)
-        self.color = color
         self.collision_type = gameManager.collisionTypes["egg"]
         self.gameManager = gameManager
-        self.color = color
+        self.sprite = pyglet.sprite.Sprite(redCircleImage, *self.body.position)
 
     def whenCaught(self):
         pass
@@ -19,7 +23,8 @@ class Egg(pymunk.Circle):
         pass
 
     def draw(self):
-        pass
+        self.sprite.x, self.sprite.y = self.body.position
+        self.sprite.draw()
     
 class RegularEgg(Egg):
     def __init__(self, gameManager, x, y):
