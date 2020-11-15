@@ -200,7 +200,7 @@ def update(dt):
     if lives == 0:
         game = False
         [removeEgg(eggShape) for eggShape in eggs]
-        [fog.remove() for fog in fogs]
+        [fogs.remove(fog) for fog in fogs]
         if first_loop:
             highscore()
         first_loop = False
@@ -289,3 +289,4 @@ pyglet.clock.schedule_interval(update, 1/60)
 
 basketBody = createBasket()
 pyglet.app.run()
+
