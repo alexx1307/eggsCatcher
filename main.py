@@ -4,29 +4,53 @@ import pymunk
 import pymunk.pyglet_util
 import random
 from pyglet import image
+import HighScoresManager as hsm
+from GUI import GUI
 
-pic = image.load('cloud.png')
-points = 0
-fogs = []
-fog = False
-lives = 3
 width = 800
 height = 600
 window = pyglet.window.Window(width, height)
-game = True
-first_loop = True
-shield = False
+gui = GUI(width, height)
+
+pointsToNextLevel = [10,20,40,80,160,320]
+class GameState:
+    def __init__(self):
+        self.points = 0
+        self.lives = 3
+        self.level = 1
+        self.game = True
+    
+    def updateLives(self, n):
+        self.lives += n
+        if self.lives <= 0:
+            gameOver()
+        gui.update(self)
+
+    def addPoints(self,pointsToAdd):
+        self.points += pointsToAdd
+        if self.level < len(pointsToNextLevel):
+            if self.points > pointsToNextLevel[self.level - 1]:
+                self.level += 1
+        gui.update(self)
+
+state = GameState()
+
+def gameOver():
+    state.game = False
+    [removeEgg(eggShape) for eggShape in eggs]
+    [fog.remove() for fog in fogs]
+    hsm.addScore(state.points)
+    bestScores = hsm.getBestScores(5)
+    gui.updateHS(bestScores)
+
+
+
+pic = image.load('./assets/cloud.png')
+fogs = []
+
 
 space = pymunk.Space()
 
-pointsToNextLevel = [10,20,40,80,160,320]
-def addPoints(pointsToAdd):
-    global level, points
-    points += pointsToAdd
-    if level < len(pointsToNextLevel):
-        if points > pointsToNextLevel[level - 1]:
-            level += 1
-    
 
 def removeEgg(eggShape):
     eggs.remove(eggShape)
@@ -34,35 +58,22 @@ def removeEgg(eggShape):
 
 
 def catchHealerEgg(arbiter, space, data):
-    global lives
-    lives += 1
     removeEgg(arbiter.shapes[0])
     return False
 
 def catchBombEgg(arbiter, space, data):
-    global lives
-    lives -= 1
+    state.updateLives(-1)
     removeEgg(arbiter.shapes[0])
     return False
 
 def catchRegularEgg(arbiter, space, data):
-    global points
-    addPoints(1)
+    state.addPoints(1)
     removeEgg(arbiter.shapes[0])
     return False
 
 
 def catchGoldenEgg(arbiter, space, data):
-    global points
-    addPoints(5)
-    removeEgg(arbiter.shapes[0])
-    return False
-
-def catchShieldEgg(arbiter, space, data):
-    global points
-    addPoints(1)
-    global shield 
-    shield = True
+    state.addPoints(5)
     removeEgg(arbiter.shapes[0])
     return False
 
@@ -79,8 +90,7 @@ collisionTypes = {
     "healerEgg": 2,
     "goldenEgg": 3,
     "mistyEgg": 4,
-    "bombEgg": 5,
-    "shieldEgg": 6
+    "bombEgg": 5
 }
 
 eggTypes = [
@@ -88,8 +98,7 @@ eggTypes = [
     ("healerEgg", (50, 50, 255, 255), 5),
     ("goldenEgg", (255, 215, 0, 255), 20),
     ("mistyEgg", (155, 150, 250, 100), 10),
-    ("bombEgg", (50, 50, 100, 255), 5),
-    ("shieldEgg", (255, 255, 50, 0), 200)
+    ("bombEgg", (50, 50, 100, 255), 5)
 ]
 
 
@@ -113,17 +122,9 @@ eggInBasketHandler = space.add_collision_handler(
     collisionTypes["bombEgg"], collisionTypes["basket"])
 eggInBasketHandler.begin = catchBombEgg
 
-eggInBasketHandler = space.add_collision_handler(
-    collisionTypes["shieldEgg"], collisionTypes["basket"])
-eggInBasketHandler.begin = catchShieldEgg
 
-movingLeft = False
-movingRight = False
-maxSpeed = 500
 
 eggs = []
-
-
 def generateEgg():
     def randomEggType():
         return random.choices(eggTypes, weights=[type[2] for type in eggTypes], k=1)[0]
@@ -157,6 +158,8 @@ def createBasket():
     return basketBody
 
 
+basketBody = createBasket()
+
 def updateFogs(dt):
     for x in fogs:
         x[0] -= dt
@@ -175,18 +178,16 @@ def updateVelocity():
 
 collisionTypesToAvoid = [collisionTypes["bombEgg"], collisionTypes["goldenEgg"]]
 def removeFallenEggs():
-    global game
     for eggShape in eggs:
         if eggShape.body.position[1] < eggShape.radius:
-            if eggShape.collision_type not in collisionTypesToAvoid and game:
-                global shield
-                if shield != True:
-                    global lives
-                    lives -= 1
-                else:
-                    shield = False
             removeEgg(eggShape)
+            if eggShape.collision_type not in collisionTypesToAvoid and state.game:
+                state.updateLives(-1)
 
+
+movingLeft = False
+movingRight = False
+maxSpeed = 500
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -195,7 +196,7 @@ def on_key_press(symbol, modifiers):
         movingLeft = True
     if symbol == key.RIGHT:
         movingRight = True
-    if symbol == key.SPACE and not game:
+    if symbol == key.SPACE and not state.game:
         reset()
     updateVelocity()
 
@@ -209,120 +210,39 @@ def on_key_release(symbol, modifiers):
         movingRight = False
     updateVelocity()
 
+def reset():
+    global state
+    state = GameState()
+    gui.update(state)
 
 timeToGenerateEgg = 2
-level = 1
-def timeToNextEgg(level):
-    return 3/level + random.uniform(0, 1.0)
 
+def timeToNextEgg():
+    return 3/state.level + random.uniform(0, 1.0)
 
 def update(dt):
-    global game, first_loop
-    if game:
+    if state.game:
         global timeToGenerateEgg
         timeToGenerateEgg -= dt
         if timeToGenerateEgg < 0:
-            timeToGenerateEgg = timeToNextEgg(level)
+            timeToGenerateEgg = timeToNextEgg()
             generateEgg()
         removeFallenEggs()
         updateFogs(dt)
-    if lives == 0:
-        game = False
-        [removeEgg(eggShape) for eggShape in eggs]
-        [fog.remove() for fog in fogs]
-        if first_loop:
-            highscore()
-        first_loop = False
     space.step(dt)
 
-def highscore():
-    global highscorelist, points
-    highscorelist = []
-    f = open('highscore.txt')
-    mylist = list(map(int, f.read().split()))
-    if points > mylist[4]:
-        mylist.append(points)
-        mylist.sort(reverse=True)
-        mylist.pop(5)
-    poslist = [350, 300, 250, 200, 150]
-    for i in range(0, 5):
-        scoreLabel = pyglet.text.Label(f'{i+1}. {mylist[i]}',
-                                font_name='Times New Roman',
-                                font_size=20,
-                                x=width//2, y=poslist[i],
-                                anchor_x='center', anchor_y='center')
-        highscorelist.append(scoreLabel)
-    f = open('highscore.txt', 'w')
-    f.write(' '.join(list(map(str, mylist))))
-
-def reset():
-    global lives, points, game, first_loop, level
-    lives = 3
-    level = 1
-    points = 0
-    game = True
-    first_loop = True
-
-gameoverLabel = pyglet.text.Label('Game Over',
-                                font_name='Times New Roman',
-                                font_size=40,
-                                x=width//2, y=550,
-                                anchor_x='center', anchor_y='center')
-
-pressspaceLabel = pyglet.text.Label('Press SPACE to play again',
-                                font_name='Times New Roman',
-                                font_size=20,
-                                x=width//2, y=500,
-                                anchor_x='center', anchor_y='center')
-
-highscorelabel = pyglet.text.Label('Highscores',
-                                font_name='Times New Roman',
-                                font_size=20,
-                                x=width//2, y=400,
-                                anchor_x='center', anchor_y='center')
-
-pointsLabel = pyglet.text.Label('Points',
-                                font_name='Times New Roman',
-                                font_size=36,
-                                x=width - 120, y=height - 50,
-                                anchor_x='center', anchor_y='center')
-livesLabel = pyglet.text.Label('Lives',
-                                font_name='Times New Roman',
-                                font_size=36,
-                                x=width - 120, y=height - 90,
-                                anchor_x='center', anchor_y='center')
-levelLabel = pyglet.text.Label('Level',
-                                font_name='Times New Roman',
-                                font_size=36,
-                                x=width - 120, y=height - 130,
-                                anchor_x='center', anchor_y='center')
-
+### WYŚWIETLANIE
 options = pymunk.pyglet_util.DrawOptions()
-
 
 @window.event
 def on_draw():
     window.clear()
-    pointsLabel.text = f'Points: {points}'
-    livesLabel.text = f'Lives: {lives}'
-    levelLabel.text = f'Level: {level}'
-    if game:
-        pointsLabel.draw()
-        livesLabel.draw()
-        levelLabel.draw()
+    gui.draw()
     space.debug_draw(options)
     for _, x, y in fogs:
         pic.blit(x, y, 0)
-    if not game:
-        gameoverLabel.draw()
-        pressspaceLabel.draw()
-        highscorelabel.draw()
-        global highscorelist
-        for a in highscorelist:
-            a.draw()
 
-
+gui.update(state)
 pyglet.clock.schedule_interval(update, 1/60)
-
-basketBody = createBasket()
 pyglet.app.run()
+
