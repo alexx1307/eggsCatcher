@@ -2,7 +2,7 @@ def addScore(score):
     try:
         mylist = __load()
     except FileNotFoundError:
-        createFile()
+        open('highscore.txt', 'x')
         mylist = __load()
     mylist.append(score)
     mylist.sort(reverse=True)
@@ -20,6 +20,3 @@ def __load():
 def __save(mylist):
     with open('highscore.txt', 'w') as f:
         f.write(' '.join(list(map(str, mylist))))
-
-def createFile():
-    open('highscore.txt', 'x')
