@@ -12,6 +12,7 @@ import Fogs as fogs
 import Eggs
 import HighScoresManager
 import Explosions
+import Bullets
 
 class GameManager(pyglet.window.Window):
     
@@ -23,7 +24,8 @@ class GameManager(pyglet.window.Window):
         super().__init__(width, height)
         self.collisionTypes = {
             "basket": 0,
-            "egg": 1
+            "egg": 1,
+            "bullet": 2
         }
         self.gui = GUI(self, width, height)
         self.space = pymunk.Space()
@@ -41,6 +43,7 @@ class GameManager(pyglet.window.Window):
         self.points = 0
         self.lives = 3
         self.level = 1
+        self.ammo = 5
         self.game = True
         self.timeToGenerateEgg = 2
         self.eggProbabilities= {
@@ -49,6 +52,7 @@ class GameManager(pyglet.window.Window):
             Eggs.BombEgg: 10,
             Eggs.GoldenEgg: 5,
             Eggs.MistyEgg: 10,
+            Eggs.ShootingEgg: 50
         }
         
     def reset(self):
@@ -61,8 +65,18 @@ class GameManager(pyglet.window.Window):
             egg.whenCaught()
             self.removeEgg(egg)
             return False
+        def eggHit(arbiter, space, data):
+            egg = arbiter.shapes[0]
+            Explosions.addExplosion(egg.body.position)
+            self.removeEgg(egg)
+            bullet = arbiter.shapes[1]
+            Bullets.removeBullet(bullet,self)
+
+            return False
         eggInBasketHandler = self.space.add_collision_handler(self.collisionTypes["egg"], self.collisionTypes["basket"])
         eggInBasketHandler.begin = eggCaught
+        eggBullet = self.space.add_collision_handler(self.collisionTypes["egg"], self.collisionTypes["bullet"])
+        eggBullet.begin = eggHit
     
     def updateLives(self, n):
         self.lives += n
@@ -130,6 +144,7 @@ class GameManager(pyglet.window.Window):
             fog.draw()
         for explosion in Explosions.explosions:
             explosion.draw()
+        Bullets.draw()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:
@@ -138,6 +153,9 @@ class GameManager(pyglet.window.Window):
             self.basket.movingRight = True
         if symbol == key.SPACE and not self.game:
             self.reset()
+        if symbol == key.SPACE and self.game and self.ammo > 0:
+            Bullets.shoot(self,self.basket.body.position)
+            self.ammo -= 1
         self.basket.updateVelocity()
 
     def on_key_release(self, symbol, modifiers):
@@ -153,6 +171,7 @@ class GameManager(pyglet.window.Window):
 
     def update(self, dt):
         if self.game:
+            Bullets.update(self)
             self.timeToGenerateEgg -= dt
             if self.timeToGenerateEgg < 0:
                 self.timeToGenerateEgg = self.timeToNextEgg()

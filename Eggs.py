@@ -19,6 +19,9 @@ shield_pic = pyglet.image.load('./assets/shield_pic.png')
 shield_pic.anchor_x = blueCircleImage.width // 2
 shield_pic.anchor_y = blueCircleImage.height // 2
 
+heal_pic = pyglet.image.load('./assets/heal.png')
+heal_pic.anchor_x = blueCircleImage.width // 2
+heal_pic.anchor_y = blueCircleImage.height // 2
 
 class Egg(pymunk.Circle):
     radius = 20
@@ -57,6 +60,8 @@ class RegularEgg(Egg):
 class HealerEgg(Egg):
     def __init__(self, gameManager, x, y):
         super().__init__(gameManager, (50, 50, 255, 255), x, y)
+        self.sprite = pyglet.sprite.Sprite(heal_pic, *self.body.position)
+        
 
     def whenCaught(self):
         self.gameManager.updateLives(1)
@@ -93,3 +98,12 @@ class MistyEgg(Egg):
 
     def whenCaught(self):
         self.gameManager.addFog()
+
+class ShootingEgg(Egg):
+    def __init__(self, gameManager, x, y):
+        super().__init__(gameManager, (155, 150, 250, 255), x, y)
+        self.sprite = pyglet.sprite.Sprite(
+            blueCircleImage, *self.body.position)
+
+    def whenCaught(self):
+        self.gameManager.ammo +=5
