@@ -11,6 +11,7 @@ from Basket import Basket
 import Fogs as fogs
 import Eggs
 import HighScoresManager
+import Explosions
 
 class GameManager(pyglet.window.Window):
     
@@ -96,7 +97,6 @@ class GameManager(pyglet.window.Window):
         radius = Eggs.Egg.radius
         pos = random.randint(radius, self.width-radius), self.height + radius
         eggType = randomEggType()
-        print(type(eggType), eggType)
         egg = eggType(self, *pos)
         self.eggs.append(egg)
         self.space.add(egg, egg.body)
@@ -122,12 +122,14 @@ class GameManager(pyglet.window.Window):
     def on_draw(self):
         self.clear()
         self.gui.draw()
-        self.space.debug_draw(GameManager.drawOptions)
+        #self.space.debug_draw(GameManager.drawOptions)
         self.basket.draw()
         for egg in self.eggs:
             egg.draw()
         for fog in self.fogs:
             fog.draw()
+        for explosion in Explosions.explosions:
+            explosion.draw()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.LEFT:

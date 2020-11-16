@@ -1,6 +1,7 @@
 import pymunk
 import random 
 import pyglet
+import Explosions
 
 redCircleImage = pyglet.image.load('./assets/redCircle.png')
 redCircleImage.anchor_x = redCircleImage.width //2
@@ -24,11 +25,11 @@ class Egg(pymunk.Circle):
         pass
 
     def whenFallUncaught(self):
-        pass
+        Explosions.addExplosion(self.body.position)
 
     def draw(self):
         self.sprite.x, self.sprite.y = self.body.position
-        #self.sprite.draw()
+        self.sprite.draw()
     
 class RegularEgg(Egg):
     def __init__(self, gameManager, x, y):
@@ -38,6 +39,7 @@ class RegularEgg(Egg):
         self.gameManager.updatePoints(1)
     
     def whenFallUncaught(self):
+        super().whenFallUncaught()
         self.gameManager.updateLives(-1)
 
 class HealerEgg(Egg):
@@ -52,6 +54,7 @@ class BombEgg(Egg):
         super().__init__(gameManager, (50, 50, 100, 255), x, y)
 
     def whenCaught(self):
+        Explosions.addExplosion(self.body.position)
         self.gameManager.updateLives(-1)
 
 class GoldenEgg(Egg):
@@ -62,6 +65,7 @@ class GoldenEgg(Egg):
         self.gameManager.updatePoints(5)
 
     def whenFallUncaught(self):
+        super().whenFallUncaught()
         self.gameManager.updateLives(-1)
 
 class MistyEgg(Egg):
