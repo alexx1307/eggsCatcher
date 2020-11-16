@@ -1,5 +1,9 @@
 def addScore(score):
-    mylist = __load()
+    try:
+        mylist = __load()
+    except FileNotFoundError:
+        open('highscore.txt', 'x')
+        mylist = __load()
     mylist.append(score)
     mylist.sort(reverse=True)
     __save(mylist)
